@@ -15,7 +15,7 @@ export default function StrikeZone({ pitch, revealed, animating, onAnimEnd }) {
     const zoneW  = W * 0.42
     const ppf    = zoneW / (SZ_RIGHT - SZ_LEFT)          // pixels per foot
     const zoneH  = (pitch.szTop - pitch.szBot) * ppf
-    const cx     = W / 2, cy = H / 2
+    const cx     = W / 2, cy = H * 0.42
     const zoneX  = cx - zoneW / 2
     const zoneY  = cy - zoneH / 2
     const ballR  = zoneW * (BALL_RADIUS / 1.66)
@@ -24,10 +24,10 @@ export default function StrikeZone({ pitch, revealed, animating, onAnimEnd }) {
     const xNorm  = (pitch.plateX - SZ_LEFT)  / (SZ_RIGHT - SZ_LEFT)
     const yNorm  = (pitch.plateZ - pitch.szBot) / (pitch.szTop - pitch.szBot)
     const ballDX = zoneX + xNorm * zoneW
-    const ballDY = zoneY + yNorm * zoneH
+    const ballDY = zoneY + (1 - yNorm) * zoneH  // flip: canvas Y increases downward
 
     // Vanishing point (release point perspective)
-    const vpX = cx, vpY = H * 0.65
+    const vpX = cx, vpY = H * 0.10
     const releaseScale = 0.06
 
     const inZone   = isInTrueZone(pitch)
@@ -45,7 +45,7 @@ export default function StrikeZone({ pitch, revealed, animating, onAnimEnd }) {
       function draw(t) {
         ctx.clearRect(0, 0, W, H)
         drawBackground(ctx, W, H, vpX, vpY, cx)
-        drawPlate(ctx, cx, zoneY, zoneW)
+        drawPlate(ctx, cx, zoneY, zoneW, zoneH)
         drawMeasurementBar(ctx, W, H, zoneX, zoneY, zoneH, pitch, 1 - Math.min(t * 2.5, 1))
 
         // Ball along bezier
@@ -92,7 +92,7 @@ export default function StrikeZone({ pitch, revealed, animating, onAnimEnd }) {
       ctx.clearRect(0, 0, W, H)
       drawBackground(ctx, W, H, vpX, vpY, cx)
       drawZone(ctx, zoneX, zoneY, zoneW, zoneH, ballColor, 0.9)
-      drawPlate(ctx, cx, zoneY, zoneW)
+      drawPlate(ctx, cx, zoneY, zoneW, zoneH)
       drawMeasurementBar(ctx, W, H, zoneX, zoneY, zoneH, pitch, 1)
 
       // Ball
@@ -146,7 +146,7 @@ export default function StrikeZone({ pitch, revealed, animating, onAnimEnd }) {
       ctx.clearRect(0, 0, W, H)
       drawBackground(ctx, W, H, vpX, vpY, cx)
       drawZone(ctx, zoneX, zoneY, zoneW, zoneH, 'rgba(255,255,255,0.5)', 0)
-      drawPlate(ctx, cx, zoneY, zoneW)
+      drawPlate(ctx, cx, zoneY, zoneW, zoneH)
       drawMeasurementBar(ctx, W, H, zoneX, zoneY, zoneH, pitch, 1)
     }
 
@@ -228,9 +228,9 @@ function drawZone(ctx, zx, zy, zw, zh, borderColor, fillAlpha) {
   ctx.fillText('rulebook strike zone', zx + 3, zy - 4)
 }
 
-function drawPlate(ctx, cx, zoneMinY, zoneW) {
+function drawPlate(ctx, cx, zoneMinY, zoneW, zoneH) {
   const pw = zoneW, ph = 12
-  const py = zoneMinY - 36
+  const py = zoneMinY + zoneH + 24
   ctx.beginPath()
   ctx.moveTo(cx, py + ph)
   ctx.lineTo(cx + pw/2, py + ph/2)
